@@ -174,6 +174,66 @@ setup() {
   assert_equal "$(bashselfupdate_current_version "$CHECKOUT")" "v1.0.0"
 }
 
+# The installer's case, and the reason checkout_latest exists separately from
+# update: `git clone` lands on the default branch, where no tag points at HEAD,
+# so update refuses it by design and an installer that called update would fail
+# on every fresh install.
+@test "checkout_latest moves a fresh clone off the default branch onto the newest tag" {
+  # main carries work published after the last release, which is the normal
+  # state of any repository between releases -- so a fresh clone lands on an
+  # untagged commit and update refuses it.
+  add_untagged_commit "$ORIGIN"
+
+  local fresh="$BATS_TEST_TMPDIR/fresh"
+  git clone --quiet "$ORIGIN" "$fresh"
+
+  run bashselfupdate_update "$fresh"
+  assert_failure
+
+  run bashselfupdate_checkout_latest "$fresh"
+  assert_success
+  assert_output "v1.1.0"
+  assert_equal "$(bashselfupdate_current_version "$fresh")" "v1.1.0"
+}
+
+@test "checkout_latest moves a checkout sitting on an untagged commit" {
+  add_release "$CHECKOUT" v1.2.0
+  git -C "$CHECKOUT" tag -d v1.2.0 --quiet 2>/dev/null || git -C "$CHECKOUT" tag -d v1.2.0
+
+  run bashselfupdate_current_version "$CHECKOUT"
+  assert_failure
+
+  run bashselfupdate_checkout_latest "$CHECKOUT"
+  assert_success
+  assert_output "v1.1.0"
+}
+
+@test "checkout_latest leaves the checkout on a branch, never detached" {
+  local fresh="$BATS_TEST_TMPDIR/fresh"
+  git clone --quiet "$ORIGIN" "$fresh"
+  bashselfupdate_checkout_latest "$fresh"
+
+  run git -C "$fresh" symbolic-ref --short HEAD
+  assert_success
+  assert_output "release"
+}
+
+@test "checkout_latest is idempotent, which is what makes re-running an installer safe" {
+  bashselfupdate_checkout_latest "$CHECKOUT"
+
+  run bashselfupdate_checkout_latest "$CHECKOUT"
+  assert_success
+  assert_output "v1.1.0"
+}
+
+@test "checkout_latest fails rather than half-applying when the remote is gone" {
+  git -C "$CHECKOUT" remote set-url origin "$BATS_TEST_TMPDIR/does-not-exist"
+
+  run bashselfupdate_checkout_latest "$CHECKOUT"
+  assert_failure
+  assert_equal "$(bashselfupdate_current_version "$CHECKOUT")" "v1.0.0"
+}
+
 @test "changelog lists the commit subjects between two tags" {
   bashselfupdate_update "$CHECKOUT"
 

@@ -106,6 +106,23 @@ installer that later runs `git pull` fails with *"You are not currently on a
 branch"*. That bug shipped in two tools before this library existed, and fixing
 it in one place is most of the reason it does.
 
+### Installers use `checkout_latest`, not `update`
+
+```bash
+bashselfupdate_checkout_latest "$MYTOOL_INSTALL_DIR"   # echoes the tag
+```
+
+`bashselfupdate_update` refuses a checkout that is not sitting exactly on a
+tag, which is what stops a working copy silently self-updating. An installer
+needs the opposite: `git clone` lands on the default branch, which between
+releases is *ahead* of the newest tag, so `update` declines every fresh
+install. `checkout_latest` moves a checkout from any state and is idempotent,
+which is what makes re-running an installer safe.
+
+Replace `git pull` in your installer with it. A tool whose `update` command
+leaves a detached HEAD cannot be pulled afterwards at all — that is the exact
+bug above, seen from the installer's end.
+
 ## Functions
 
 | Function | Does |
@@ -114,6 +131,7 @@ it in one place is most of the reason it does.
 | `bashselfupdate_enabled <tool> <dir>` | Echoes the skip reason, or nothing |
 | `bashselfupdate_check <dir> [remote]` | `<current> <latest>` when behind |
 | `bashselfupdate_update <dir> [remote]` | Moves the checkout; `<from> <to>` |
+| `bashselfupdate_checkout_latest <dir> [remote]` | Moves it from *any* state; echoes the tag. For installers |
 | `bashselfupdate_changelog <dir> <from> <to>` | Commit subjects, one per line |
 | `bashselfupdate_current_version <dir>` | The tag it sits on, or non-zero |
 | `bashselfupdate_describe <dir>` | Human-readable, tagged or not |
@@ -166,11 +184,9 @@ exists to bound the request rate, and only this ordering actually does that.
 
 ## Siblings
 
-The same two-layer design in other languages. **`update` exists in all three;
-the `notify` layer, the shared `autoupdate.json` schema and the
-`NO_AUTO_UPDATE` contract are implemented in this library and in its py
-sibling, and are still to be added to goselfupdate** — until then goselfupdate
-provides the update half only.
+The same two-layer design in other languages. All three now ship both halves,
+and share the `autoupdate.json` schema, the `NO_AUTO_UPDATE` contract and the
+version precedence rules.
 
 - [goselfupdate](https://github.com/datapointchris/goselfupdate) — replaces a Go binary
 - [pyselfupdate](https://github.com/datapointchris/pyselfupdate) — reinstalls a `uv tool`

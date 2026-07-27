@@ -59,6 +59,33 @@ bashselfupdate_update() {
   echo "$before $latest"
 }
 
+# Moves a checkout to the newest published tag from any starting state.
+#
+# Echoes the tag. Unlike bashselfupdate_update this has no precondition: the
+# checkout may be on a branch, on an older tag, or on an untagged commit.
+#
+# This is the installer's operation, not the user's. `bashselfupdate_update`
+# refuses a checkout that is not sitting exactly on a tag, which is right for
+# `<tool> update` -- a working copy must not silently self-update. An installer
+# needs the opposite: a fresh `git clone` lands on the default branch, and
+# putting it on the latest release is the entire job.
+#
+# It exists here because every consumer's install.sh otherwise reimplements the
+# checkout-onto-a-branch line, which is the one line this library exists to own.
+bashselfupdate_checkout_latest() {
+  local directory="$1"
+  local remote="${2:-origin}"
+
+  git -C "$directory" fetch --tags --force --quiet "$remote" 2>/dev/null || return 1
+
+  local latest
+  latest=$(bashselfupdate_latest_tag "$directory" "$remote") || return 1
+
+  git -C "$directory" checkout -B "$BASHSELFUPDATE_RELEASE_BRANCH" "$latest" --quiet 2>/dev/null || return 1
+
+  echo "$latest"
+}
+
 # Commit subjects between two tags, one per line, newest last.
 #
 # Read from the local checkout, which already has both tags after the fetch

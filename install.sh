@@ -40,11 +40,27 @@ fi
 # Resolve the tag to install. Without an argument this takes the newest, using
 # the library's own comparator rather than `sort -V` -- which orders a
 # pre-release above its release -- or git's --sort=v:refname.
+#
+# Sourced from $INSTALL_DIR, which at this point still holds the version being
+# replaced. That is why this script uses only these two files and spells the
+# checkout out below: see the note there.
 # shellcheck source=lib/version.sh
 source "$INSTALL_DIR/lib/version.sh"
 # shellcheck source=lib/source.sh
 source "$INSTALL_DIR/lib/source.sh"
 
+# Checked out onto a branch, never a detached HEAD. A detached checkout has no
+# upstream, so re-running this installer -- or any `git pull` against it --
+# fails afterwards with "You are not currently on a branch". That bug shipped in
+# two tools before this library existed, and pinning it here is most of the
+# reason the library exists.
+# Spelled out here rather than calling bashselfupdate_checkout_latest, which is
+# the function every *consumer's* installer should use. This script is the
+# bootstrap: it sources from $INSTALL_DIR, which still holds the version being
+# replaced, so depending on a function to install the version that defines it
+# fails on exactly the upgrade that introduces it. A bootstrap cannot call
+# forward into what it is bootstrapping. The two version.sh/source.sh functions
+# above are the minimum it needs and have been stable since v1.0.0.
 if [[ -n "$REQUESTED_TAG" ]]; then
   TAG="$REQUESTED_TAG"
 else
@@ -54,11 +70,6 @@ else
   fi
 fi
 
-# Checked out onto a branch, never a detached HEAD. A detached checkout has no
-# upstream, so re-running this installer -- or any `git pull` against it --
-# fails afterwards with "You are not currently on a branch". That bug shipped in
-# two tools before this library existed, and pinning it here is most of the
-# reason the library exists.
 if ! git -C "$INSTALL_DIR" checkout -B "$RELEASE_BRANCH" "$TAG" --quiet; then
   error "could not check out $TAG"
   exit 1

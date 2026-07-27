@@ -71,6 +71,20 @@ add_release() {
   )
 }
 
+# Adds an untagged commit, putting the branch ahead of its last release the way
+# any repository sits between releases.
+add_untagged_commit() {
+  local path="$1"
+
+  (
+    unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY \
+      GIT_ALTERNATE_OBJECT_DIRECTORIES
+    echo "unreleased" >>"$path/VERSION"
+    git -C "$path" add VERSION
+    git -C "$path" commit --quiet -m "work after the last release"
+  )
+}
+
 # Every variable the gate reads. Cleared in setup so a developer's own shell --
 # an exported CI=1, a NO_AUTO_UPDATE left over from debugging -- cannot make the
 # suite pass or fail for the wrong reason.

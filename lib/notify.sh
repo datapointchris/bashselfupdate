@@ -13,17 +13,41 @@ BASHSELFUPDATE_DEFAULT_INTERVAL=86400
 # Echoes the skip reason and returns non-zero when it may not, so a caller can
 # report why a tool has gone quiet. Returns 0 and echoes nothing when it may.
 #
+# Note that the terminal check reads *this* call's stdout. Capturing the reason
+# with $(...) therefore reports not-a-tty, because a command substitution is a
+# pipe -- ask about a tool that has gone quiet from a terminal, or set
+# BASHSELFUPDATE_INTERACTIVE to state the answer.
+#
 # Usage: bashselfupdate_enabled <tool> <dir>
 bashselfupdate_enabled() {
+  if _bashselfupdate_gate "$1" "$2"; then
+    return 0
+  fi
+  echo "$BASHSELFUPDATE_SKIP_REASON"
+  return 1
+}
+
+# The gate itself. Sets BASHSELFUPDATE_SKIP_REASON and returns non-zero when a
+# check may not run; prints nothing.
+#
+# Separate from bashselfupdate_enabled because printing and gating cannot share
+# one function. notify has to discard the reason, and the only ways to discard a
+# function's stdout -- `>/dev/null` or `$(...)` -- both replace stdout, which is
+# exactly what the terminal check below reads. notify redirecting the reason
+# away therefore made its own gate answer not-a-tty every time, so notify never
+# printed anything unless BASHSELFUPDATE_INTERACTIVE was set. Every test set it,
+# which is why the suite was green through it.
+_bashselfupdate_gate() {
   local tool="$1" directory="$2"
   local prefix
   prefix=$(_bashselfupdate_env_prefix "$tool")
+  BASHSELFUPDATE_SKIP_REASON=""
 
   # Presence-only, any value including empty -- the NO_COLOR convention -- so
   # that NO_AUTO_UPDATE=0 cannot mean "on". ${VAR+x} is the only spelling of
   # "set, even to the empty string" in bash.
   if [[ -n ${NO_AUTO_UPDATE+x} ]] || eval "[[ -n \${${prefix}_NO_AUTO_UPDATE+x} ]]"; then
-    echo disabled
+    BASHSELFUPDATE_SKIP_REASON=disabled
     return 1
   fi
 
@@ -37,12 +61,12 @@ bashselfupdate_enabled() {
   # gate, because allocating a pty requires a controlling terminal that neither
   # a test runner nor a CI step has.
   if ! _bashselfupdate_is_interactive; then
-    echo not-a-tty
+    BASHSELFUPDATE_SKIP_REASON=not-a-tty
     return 1
   fi
 
   if [[ -n ${CI+x} || -n ${BUILD_NUMBER+x} || -n ${RUN_ID+x} || -n ${GITHUB_ACTIONS+x} || -n ${CODESPACES+x} ]]; then
-    echo ci
+    BASHSELFUPDATE_SKIP_REASON=ci
     return 1
   fi
 
@@ -51,11 +75,11 @@ bashselfupdate_enabled() {
   # wrong notice on every command in a working copy.
   local current
   current=$(bashselfupdate_current_version "$directory" 2>/dev/null) || {
-    echo dev-checkout
+    BASHSELFUPDATE_SKIP_REASON=dev-checkout
     return 1
   }
   if ! bashselfupdate_is_valid_version "$current"; then
-    echo dev-checkout
+    BASHSELFUPDATE_SKIP_REASON=dev-checkout
     return 1
   fi
 
@@ -71,9 +95,10 @@ bashselfupdate_enabled() {
 bashselfupdate_notify() {
   local tool="$1" directory="$2" remote="${3:-origin}"
 
-  # The reason is discarded here; bashselfupdate_enabled exists so a *caller*
-  # can report why a tool has gone quiet, and notify's whole contract is silence.
-  if ! bashselfupdate_enabled "$tool" "$directory" >/dev/null; then
+  # _bashselfupdate_gate, not bashselfupdate_enabled: the gate has to be
+  # evaluated against this caller's stdout, and any way of discarding the
+  # reason bashselfupdate_enabled prints would replace it. See the note there.
+  if ! _bashselfupdate_gate "$tool" "$directory"; then
     return 0
   fi
 

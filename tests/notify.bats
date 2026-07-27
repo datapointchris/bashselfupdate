@@ -144,6 +144,27 @@ notify_interactively() {
   [[ ! -f "$STATE" ]]
 }
 
+# The bug this asserts against: notify used to call bashselfupdate_enabled with
+# `>/dev/null` to throw away the skip reason, and that redirect replaced the very
+# stdout the terminal check reads -- so the gate answered not-a-tty on every
+# invocation and notify could never print anything. Every other test in this file
+# sets BASHSELFUPDATE_INTERACTIVE, which short-circuits the check before it looks
+# at stdout, so the whole suite stayed green through it.
+#
+# There is no pty here to assert the real thing, so this asserts the property
+# that made it possible: whatever the gate writes to stdout must reach the
+# caller's stdout. A redirect anywhere between the two swallows the marker.
+@test "the gate is evaluated against the caller's stdout, not a redirected one" {
+  _bashselfupdate_is_interactive() {
+    echo "gate-sees-callers-stdout"
+    return 0
+  }
+
+  run bashselfupdate_notify demo "$CHECKOUT"
+  assert_success
+  assert_output --partial "gate-sees-callers-stdout"
+}
+
 @test "a dev checkout is never notified" {
   add_release "$CHECKOUT" v9.9.9
   git -C "$CHECKOUT" tag -d v9.9.9 >/dev/null

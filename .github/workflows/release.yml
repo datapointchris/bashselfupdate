@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A bash library ships as a git tag and nothing else -- there is no
+      # artifact to build, and the tag is what install.sh and
+      # bashselfupdate_latest_tag resolve.
+      - uses: go-semantic-release/action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          changelog-file: CHANGELOG.md
+          prepend: true

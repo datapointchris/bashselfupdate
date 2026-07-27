@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # The README claims Linux and macOS. That is only true if both run the suite:
+  # this library exists partly because BSD and GNU disagree about `date` and
+  # `sort`, so a Linux-only matrix would miss the failures it was written for.
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats and its helpers
+        run: |
+          git clone --depth 1 https://github.com/bats-core/bats-core.git /tmp/bats
+          sudo /tmp/bats/install.sh /usr/local
+          mkdir -p "$HOME/.local/lib"
+          git clone --depth 1 https://github.com/bats-core/bats-support.git "$HOME/.local/lib/bats-support"
+          git clone --depth 1 https://github.com/bats-core/bats-assert.git "$HOME/.local/lib/bats-assert"
+
+      - name: Run the suite
+        run: bats tests/
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y shellcheck
+          shellcheck lib/*.sh load.bash install.sh tests/helpers.bash
+
+      - name: shfmt
+        run: |
+          curl -fsSL -o /tmp/shfmt https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64
+          chmod +x /tmp/shfmt
+          /tmp/shfmt --diff --indent 2 --binary-next-line --case-indent lib/ load.bash install.sh
+
+  # The install path is the product for anyone who is not already a consumer,
+  # and it is the one thing the unit tests cannot cover: it clones over the
+  # network and checks out a tag. Pointed at this checkout via
+  # BASHSELFUPDATE_REPO_URL so it exercises the commit under test rather than
+  # whatever is on main.
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install from this checkout and source it
+        run: |
+          # A release tag may not exist yet on a pull request branch, so one is
+          # fabricated locally. The installer's job is to resolve and pin the
+          # newest tag; where that tag came from is not its concern.
+          git config user.email ci@example.invalid
+          git config user.name CI
+          git tag --force ci-test-v0.0.1 >/dev/null 2>&1 || true
+          git tag --force v0.0.1 >/dev/null 2>&1 || true
+
+          BASHSELFUPDATE_REPO_URL="$PWD" \
+          BASHSELFUPDATE_INSTALL_DIR=/tmp/bsu-install \
+            bash install.sh
+
+          # The bug this library exists to prevent: a detached HEAD has no
+          # upstream, so re-running the installer must still work.
+          test "$(git -C /tmp/bsu-install symbolic-ref --short HEAD)" = "release"
+          BASHSELFUPDATE_REPO_URL="$PWD" \
+          BASHSELFUPDATE_INSTALL_DIR=/tmp/bsu-install \
+            bash install.sh
+
+          # shellcheck disable=SC1091
+          source /tmp/bsu-install/load.bash
+          bashselfupdate_is_valid_version v1.2.3
+          test "$(bashselfupdate_compare_versions v1.0.0 v2.0.0)" = "-1"
+          echo "installed, pinned, re-runnable and callable"

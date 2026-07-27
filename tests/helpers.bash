@@ -46,6 +46,12 @@ make_checkout() {
     unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY \
       GIT_ALTERNATE_OBJECT_DIRECTORIES
     git clone --quiet "$origin" "$path"
+    # A clone inherits none of the source repository's local config, so a later
+    # add_release into it fails with "empty ident name" on any machine without a
+    # global git identity -- which is every CI runner.
+    git -C "$path" config user.email test@example.invalid
+    git -C "$path" config user.name Test
+    git -C "$path" config commit.gpgsign false
     git -C "$path" checkout -B release "$tag" --quiet
   )
   echo "$path"

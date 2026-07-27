@@ -30,6 +30,10 @@ means three different operations.
   caller's shell, and setting shell options there silently changes the error
   handling of the program that sourced them. `install.sh` is executed, not
   sourced, so it does set them.
+- **bash 3.2, not bash 4.** macOS ships 3.2 and always will, so `${var^^}`,
+  `${var,,}`, `declare -A`, `readarray` and `mapfile` are all unavailable. A
+  Homebrew bash hides this locally; the macOS CI job and a grep in the lint job
+  both catch it. Same reasoning as the siblings' deliberately low floors.
 - **The only hard dependencies are `git` and `jq`.** Both are already required
   by every consumer. No `curl`, no GitHub API, no token.
 - **`update` leaves the checkout on a branch, never detached.** This is the bug

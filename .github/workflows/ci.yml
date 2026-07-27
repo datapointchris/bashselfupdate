@@ -42,6 +42,22 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y shellcheck
           shellcheck lib/*.sh load.bash install.sh tests/helpers.bash
 
+      # macOS ships bash 3.2 and always will, so a bash 4 expansion is a "bad
+      # substitution" on every invocation for anyone on a stock Mac. The macOS
+      # job below would catch it, but only after a full clone-and-test cycle and
+      # with an error that does not name the cause.
+      - name: No bash 4+ only constructs
+        run: |
+          # Comment lines are filtered out so documenting a forbidden form
+          # cannot itself fail the build.
+          if grep -rnE '\$\{[^}]*(\^\^|,,)[^}]*\}|declare -A|readarray|mapfile' \
+              lib/ load.bash install.sh tests/ \
+              | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#'; then
+            echo "bash 4+ construct found; this library targets bash 3.2"
+            exit 1
+          fi
+          echo "bash 3.2 compatible"
+
       - name: shfmt
         run: |
           curl -fsSL -o /tmp/shfmt https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64

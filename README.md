@@ -26,7 +26,8 @@ is the layout `bats-support` and `bats-assert` established for a sourced bash
 library, so the `source` line above looks like every other one already in your
 tool.
 
-Requires `git`, `jq`, and bash 4+.
+Requires `git`, `jq`, and bash 3.2+ — which is to say the bash macOS ships,
+not a newer one from Homebrew.
 
 ## Why
 

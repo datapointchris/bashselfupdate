@@ -116,10 +116,15 @@ _bashselfupdate_is_interactive() {
   [[ -t 1 && -t 2 ]]
 }
 
+# Case conversion via tr rather than the parameter expansion that does it in
+# one step: that expansion is bash 4.0+, and macOS ships bash 3.2 and always
+# will -- so a stranger on a stock Mac would get "bad substitution" on every
+# invocation. The siblings keep a deliberately low floor for the same reason;
+# this is bash's version of that. See CLAUDE.md for the exact forms to avoid.
 _bashselfupdate_env_prefix() {
   local tool="$1"
   tool="${tool//-/_}"
-  echo "${tool^^}"
+  printf '%s' "$tool" | tr '[:lower:]' '[:upper:]'
 }
 
 # Seconds between checks. A per-tool variable outranks the fleet one, and both
@@ -144,7 +149,8 @@ _bashselfupdate_interval() {
 }
 
 _bashselfupdate_parse_interval() {
-  local raw="${1,,}"
+  local raw
+  raw=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
   local number="${raw%[smhd]}"
   local unit="${raw:${#number}}"
 

@@ -166,11 +166,17 @@ exists to bound the request rate, and only this ordering actually does that.
 
 ## Siblings
 
-The same design in two other languages, sharing the state schema and the
-environment-variable contract:
+The same two-layer design in other languages. **`update` exists in all three;
+the `notify` layer, the shared `autoupdate.json` schema and the
+`NO_AUTO_UPDATE` contract are implemented in this library and in its py
+sibling, and are still to be added to goselfupdate** — until then goselfupdate
+provides the update half only.
 
 - [goselfupdate](https://github.com/datapointchris/goselfupdate) — replaces a Go binary
 - [pyselfupdate](https://github.com/datapointchris/pyselfupdate) — reinstalls a `uv tool`
+
+Version precedence is deliberately identical across all three, so a tool and
+its siblings never disagree about which release is newer.
 
 ## Licence
 

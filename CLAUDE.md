@@ -8,8 +8,10 @@ function names, the README and the header comments as the product — a change
 that is merely convenient for font and theme is not automatically right.
 
 It is the bash sibling of `~/tools/goselfupdate` and `~/tools/pyselfupdate`.
-The three deliberately share conventions, the state-file schema and the
-environment-variable contract. They do **not** share an API, because "update"
+The three deliberately share conventions and version precedence. The state-file
+schema and the environment-variable contract are shared with the sibling that
+also has a notify layer; **goselfupdate does not have one yet**, so today it
+implements the update half only. They do **not** share an API, because "update"
 means three different operations.
 
 ## Layout

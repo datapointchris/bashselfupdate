@@ -1,4 +1,4 @@
-# forge-toolchain: 9
+# forge-toolchain: 11
 name: CI
 
 on:
@@ -63,9 +63,15 @@ jobs:
       # difference. Version comes from the toolchain manifest, like shellcheck.
       #
       # Discovery uses shfmt's own -f over tracked files rather than repeating
-      # the shebang scan above: shellcheck and shfmt disagree about what they
-      # can parse (shfmt has no zsh support), so each tool choosing its own set
-      # is more correct than sharing one list.
+      # the shebang scan above, because the two tools disagree about what they
+      # can parse and each is the authority on its own set.
+      #
+      # The zsh filter is not redundant with that. shfmt has no zsh support but
+      # -f lists .zsh anyway, so CI formatted a file the hook excludes via
+      # exclude_types: [zsh] — dotfiles' prompt.zsh passed every hook and failed
+      # here. The two sides have to name the same set or a repo cannot be green
+      # in both. shellcheck's scan above needs no such filter: it matches on a
+      # bash or sh shebang, which no zsh file carries.
       - name: shfmt
         run: |
           shfmt_version="3.13.1"
@@ -75,7 +81,8 @@ jobs:
           chmod +x "$shfmt_bin"
           "$shfmt_bin" --version
 
-          files=$(git ls-files | xargs "$shfmt_bin" -f 2>/dev/null)
+          files=$(git ls-files | xargs "$shfmt_bin" -f 2>/dev/null \
+            | grep -vE '(^|/)(\.?zshrc|\.?zshenv|\.zprofile|\.zlogin|\.zlogout)$|\.zsh$' || true)
           if [ -z "$files" ]; then
             echo "no shell files found"
             exit 0
@@ -93,14 +100,35 @@ jobs:
       # Guarded so a shell repo with no suite yet is not a hard failure. The
       # guard covers absence only: if tests exist, bats runs and its exit status
       # stands.
+      #
+      # Discovery stays flat, and says so when it finds a nested layout it will
+      # not run. Recursing was tried: dotfiles keeps its 24 suites under
+      # tests/apps, tests/install and tests/libraries, so `tests/*.bats` matched
+      # nothing and the step reported green having run nothing. But `bats -r`
+      # then swept in that repo's integration tier, which wants Docker images
+      # and live network and fails on a bare runner.
+      #
+      # A generic block cannot tell a unit suite from an integration one — only
+      # the repo knows which of its tiers is runner-safe. So this runs the flat
+      # case, and a nested repo adds a # > custom: step naming its own subset.
+      # What it must not do is exit 0 in silence, which is how the layout went
+      # unnoticed in the first place.
       - name: bats
         run: |
           bats_version="1.14.0"
           bats_support_version="0.3.0"
           bats_assert_version="2.2.4"
 
-          if ! compgen -G "tests/*.bats" > /dev/null; then
+          if [ -z "$(find tests -name '*.bats' -print -quit 2>/dev/null)" ]; then
             echo "no bats tests found"
+            exit 0
+          fi
+
+          if ! compgen -G "tests/*.bats" > /dev/null; then
+            echo "bats suites exist under tests/ but none at its root."
+            echo "This step runs tests/*.bats only — a nested layout names its"
+            echo "own runner-safe subset in a # > custom: step."
+            find tests -name '*.bats' | sed 's/^/  /'
             exit 0
           fi
 

@@ -27,7 +27,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # --unsafe parses instead of safe_load'ing. Every mkdocs-material repo
+      # carries `!!python/name:material.extensions.emoji.twemoji`, which
+      # safe_load can never construct — five repos fail this hook without it.
+      # The alternative is excluding mkdocs.yml, which checks strictly less.
       - id: check-yaml
+        args: [--unsafe]
       - id: check-toml
       - id: check-json
       - id: end-of-file-fixer
@@ -56,10 +61,19 @@ repos:
         args: [--fix]
 
 # generated:shell - Shell
+  #
+  # exclude_types: [zsh] on both tools. Neither supports zsh, and neither says
+  # so — shellcheck lints a .zshrc as bash and reports nothing, while shfmt
+  # reformats it under bash rules: on dotfiles it rewrote `>&2 }` to `>&2; }`,
+  # correct for bash and unnecessary in zsh. Both were silently out of contract,
+  # which is worse than either erroring. identify already tags these files zsh,
+  # so this is the native exclusion rather than a path regex that would have to
+  # enumerate .zshrc, .zprofile, .zlogin and the rest.
   - repo: https://github.com/koalaman/shellcheck-precommit
     rev: v0.10.0
     hooks:
       - id: shellcheck
+        exclude_types: [zsh]
 
   # shfmt has no pre-commit hooks file of its own, so this is the repo shfmt's
   # README points at. Its `shfmt` id runs the prebuilt upstream binary, which
@@ -73,6 +87,7 @@ repos:
     rev: v3.13.1-1
     hooks:
       - id: shfmt
+        exclude_types: [zsh]
 
   # bats ships no hook repo of its own, so this one is local.
   #

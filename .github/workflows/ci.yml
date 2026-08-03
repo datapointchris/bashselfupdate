@@ -11,13 +11,14 @@ permissions:
 jobs:
   # The README claims Linux and macOS. That is only true if both run the suite:
   # this library exists partly because BSD and GNU disagree about `date` and
-  # `sort`, so a Linux-only matrix would miss the failures it was written for.
+  # `sort`, so a Linux-only run would miss the failures it was written for.
+  #
+  # macOS only, because the generated validate.yml already runs the suite on
+  # Linux. This job covers the half a generated workflow cannot: it is pinned to
+  # one runner, and an OS matrix is the thing that is not derivable from a
+  # repo's declared components.
   test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -32,15 +33,16 @@ jobs:
       - name: Run the suite
         run: bats tests/
 
+  # shellcheck and shfmt used to live here. They are in the generated
+  # validate.yml now, at the versions the toolchain manifest pins and reading
+  # the repo's .editorconfig. This copy took shellcheck unpinned from apt and
+  # shfmt hardcoded at 3.10.0 with printer flags — and a printer flag makes
+  # shfmt discard .editorconfig outright, so the two would have graded the same
+  # files against different styles.
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: shellcheck
-        run: |
-          sudo apt-get update -qq && sudo apt-get install -y shellcheck
-          shellcheck lib/*.sh load.bash install.sh tests/helpers.bash
 
       # macOS ships bash 3.2 and always will, so a bash 4 expansion is a "bad
       # substitution" on every invocation for anyone on a stock Mac. The macOS
@@ -57,12 +59,6 @@ jobs:
             exit 1
           fi
           echo "bash 3.2 compatible"
-
-      - name: shfmt
-        run: |
-          curl -fsSL -o /tmp/shfmt https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64
-          chmod +x /tmp/shfmt
-          /tmp/shfmt --diff --indent 2 --binary-next-line --case-indent lib/ load.bash install.sh
 
   # The install path is the product for anyone who is not already a consumer,
   # and it is the one thing the unit tests cannot cover: it clones over the

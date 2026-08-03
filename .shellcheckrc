@@ -1,0 +1,7 @@
+# Follow relative `source` targets instead of reporting SC1091 for each one.
+# This enables checking, unlike disabling the code, which hides it.
+external-sources=true
+
+# Resolve a `source=` directive against the sourcing file, not the working
+# directory, so tests/ can name ../lib/x.sh and lint the same from anywhere.
+source-path=SCRIPTDIR

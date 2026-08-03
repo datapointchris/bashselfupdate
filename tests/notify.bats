@@ -10,10 +10,15 @@ load "$HOME/.local/lib/bats-assert/load.bash"
 
 setup() {
   load helpers
+  # shellcheck source=../lib/version.sh
   source "$BATS_TEST_DIRNAME/../lib/version.sh"
+  # shellcheck source=../lib/state.sh
   source "$BATS_TEST_DIRNAME/../lib/state.sh"
+  # shellcheck source=../lib/source.sh
   source "$BATS_TEST_DIRNAME/../lib/source.sh"
+  # shellcheck source=../lib/update.sh
   source "$BATS_TEST_DIRNAME/../lib/update.sh"
+  # shellcheck source=../lib/notify.sh
   source "$BATS_TEST_DIRNAME/../lib/notify.sh"
 
   clear_gate_environment
@@ -37,7 +42,7 @@ notify_interactively() {
   run notify_interactively
   assert_success
   assert_output --partial "demo v1.1.0 available (running v1.0.0)"
-  assert_output --partial 'run `demo update`'
+  assert_output --partial "run \`demo update\`"
 }
 
 @test "says nothing when already current" {
@@ -235,7 +240,7 @@ notify_interactively() {
   assert_equal "$(_bashselfupdate_parse_interval 90)" "90"
 }
 
-@test "an unparseable interval falls back to the default rather than failing" {
+@test "an unparsable interval falls back to the default rather than failing" {
   run _bashselfupdate_parse_interval "soon"
   assert_failure
 

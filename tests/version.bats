@@ -10,6 +10,7 @@ load "$HOME/.local/lib/bats-support/load.bash"
 load "$HOME/.local/lib/bats-assert/load.bash"
 
 setup() {
+  # shellcheck source=../lib/version.sh
   source "$BATS_TEST_DIRNAME/../lib/version.sh"
 }
 

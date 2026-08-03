@@ -10,8 +10,11 @@ load "$HOME/.local/lib/bats-assert/load.bash"
 
 setup() {
   load helpers
+  # shellcheck source=../lib/version.sh
   source "$BATS_TEST_DIRNAME/../lib/version.sh"
+  # shellcheck source=../lib/source.sh
   source "$BATS_TEST_DIRNAME/../lib/source.sh"
+  # shellcheck source=../lib/update.sh
   source "$BATS_TEST_DIRNAME/../lib/update.sh"
 
   ORIGIN=$(make_repo "$BATS_TEST_TMPDIR/origin" v1.0.0 v1.1.0)
@@ -93,8 +96,8 @@ setup() {
   local empty
   empty=$(make_repo "$BATS_TEST_TMPDIR/untagged")
   git -C "$empty" commit --allow-empty --quiet -m initial
-  local clone
-  clone=$(make_checkout "$empty" "$BATS_TEST_TMPDIR/untagged-clone" HEAD 2>/dev/null || true)
+  # Called for the checkout it creates; the path is named directly below.
+  make_checkout "$empty" "$BATS_TEST_TMPDIR/untagged-clone" HEAD >/dev/null 2>&1 || true
 
   run bashselfupdate_latest_tag "$BATS_TEST_TMPDIR/untagged-clone"
   assert_failure

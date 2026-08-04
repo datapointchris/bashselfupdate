@@ -58,7 +58,7 @@ source "$INSTALL_DIR/lib/source.sh"
 # the function every *consumer's* installer should use. This script is the
 # bootstrap: it sources from $INSTALL_DIR, which still holds the version being
 # replaced, so depending on a function to install the version that defines it
-# fails on exactly the upgrade that introduces it. A bootstrap cannot call
+# fails on exactly the update that introduces it. A bootstrap cannot call
 # forward into what it is bootstrapping. The two version.sh/source.sh functions
 # above are the minimum it needs and have been stable since v1.0.0.
 if [[ -n "$REQUESTED_TAG" ]]; then

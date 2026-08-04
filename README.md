@@ -89,13 +89,13 @@ A worked `mytool update`:
 if moved=$(bashselfupdate_update "$MYTOOL_APP_DIR"); then
   if [[ -n "$moved" ]]; then
     read -r from to <<<"$moved"
-    echo "✓ mytool upgraded: $from → $to"
+    echo "✓ mytool updated: $from → $to"
     bashselfupdate_changelog "$MYTOOL_APP_DIR" "$from" "$to" | sed 's/^/  • /'
   else
     echo "✓ mytool already at latest: $(bashselfupdate_current_version "$MYTOOL_APP_DIR")"
   fi
 else
-  echo "✗ mytool upgrade failed" >&2
+  echo "✗ mytool update failed" >&2
   exit 1
 fi
 ```

@@ -41,7 +41,7 @@ means three different operations.
 - **`update` leaves the checkout on a branch, never detached.** This is the bug
   the library exists to stop repeating; `tests/update.bats` pins it twice.
 - **The notify path never fails and never prints an error.** `<tool> update`
-  prints errors. This is what stops a dev checkout printing an upgrade failure
+  prints errors. This is what stops a dev checkout printing an update failure
   on every invocation, and it is a design rule rather than scattered guards.
 - **The last-checked timestamp is written before the lookup, not after.** `gh`
   stamps only on success, so an offline user retries on every invocation until

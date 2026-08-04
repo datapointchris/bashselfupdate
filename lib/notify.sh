@@ -4,7 +4,7 @@
 # This layer never updates. `<tool> update` updates, and `<tool> update` is
 # where errors are printed; a failure here is recorded in the state file and
 # swallowed. That single rule is what keeps a dev checkout from printing an
-# upgrade failure on every invocation.
+# update failure on every invocation.
 
 BASHSELFUPDATE_DEFAULT_INTERVAL=86400
 

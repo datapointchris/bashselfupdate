@@ -44,9 +44,7 @@ fi
 # Sourced from $INSTALL_DIR, which at this point still holds the version being
 # replaced. That is why this script uses only these two files and spells the
 # checkout out below: see the note there.
-# shellcheck source=lib/version.sh
 source "$INSTALL_DIR/lib/version.sh"
-# shellcheck source=lib/source.sh
 source "$INSTALL_DIR/lib/source.sh"
 
 # Checked out onto a branch, never a detached HEAD. A detached checkout has no

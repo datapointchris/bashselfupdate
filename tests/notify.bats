@@ -10,15 +10,10 @@ load "$HOME/.local/lib/bats-assert/load.bash"
 
 setup() {
   load helpers
-  # shellcheck source=../lib/version.sh
   source "$BATS_TEST_DIRNAME/../lib/version.sh"
-  # shellcheck source=../lib/state.sh
   source "$BATS_TEST_DIRNAME/../lib/state.sh"
-  # shellcheck source=../lib/source.sh
   source "$BATS_TEST_DIRNAME/../lib/source.sh"
-  # shellcheck source=../lib/update.sh
   source "$BATS_TEST_DIRNAME/../lib/update.sh"
-  # shellcheck source=../lib/notify.sh
   source "$BATS_TEST_DIRNAME/../lib/notify.sh"
 
   clear_gate_environment

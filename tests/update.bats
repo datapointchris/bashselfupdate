@@ -10,11 +10,8 @@ load "$HOME/.local/lib/bats-assert/load.bash"
 
 setup() {
   load helpers
-  # shellcheck source=../lib/version.sh
   source "$BATS_TEST_DIRNAME/../lib/version.sh"
-  # shellcheck source=../lib/source.sh
   source "$BATS_TEST_DIRNAME/../lib/source.sh"
-  # shellcheck source=../lib/update.sh
   source "$BATS_TEST_DIRNAME/../lib/update.sh"
 
   ORIGIN=$(make_repo "$BATS_TEST_TMPDIR/origin" v1.0.0 v1.1.0)

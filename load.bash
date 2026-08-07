@@ -13,15 +13,10 @@
 
 BASHSELFUPDATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# shellcheck source=lib/version.sh
 source "$BASHSELFUPDATE_DIR/lib/version.sh"
-# shellcheck source=lib/state.sh
 source "$BASHSELFUPDATE_DIR/lib/state.sh"
-# shellcheck source=lib/source.sh
 source "$BASHSELFUPDATE_DIR/lib/source.sh"
-# shellcheck source=lib/update.sh
 source "$BASHSELFUPDATE_DIR/lib/update.sh"
-# shellcheck source=lib/notify.sh
 source "$BASHSELFUPDATE_DIR/lib/notify.sh"
 
 # This library's own version, so a consumer can report what it loaded.

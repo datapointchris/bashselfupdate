@@ -8,11 +8,12 @@ function names, the README and the header comments as the product — a change
 that is merely convenient for font and theme is not automatically right.
 
 It is the bash sibling of `~/tools/goselfupdate` and `~/tools/pyselfupdate`.
-The three deliberately share conventions and version precedence. The state-file
-schema and the environment-variable contract are shared with the sibling that
-also has a notify layer; **goselfupdate does not have one yet**, so today it
-implements the update half only. They do **not** share an API, because "update"
-means three different operations.
+The three deliberately share conventions and version precedence. All three now
+have a notify layer — goselfupdate's is `autoupdate/autoupdate.go`. The
+state-file schema and the environment-variable contract are shared across all
+three, so a rename in one breaks the other two; see
+`~/dev/standards/release.md` § Self-update. They do **not** share an API,
+because "update" means three different operations.
 
 ## Layout
 
@@ -28,57 +29,36 @@ means three different operations.
 
 ## Constraints that must not regress
 
-- **No `set -euo pipefail` in any sourced file.** These are sourced into the
-  caller's shell, and setting shell options there silently changes the error
-  handling of the program that sourced them. `install.sh` is executed, not
-  sourced, so it does set them.
-- **bash 3.2, not bash 4.** macOS ships 3.2 and always will, so `${var^^}`,
-  `${var,,}`, `declare -A`, `readarray` and `mapfile` are all unavailable. A
-  Homebrew bash hides this locally; the macOS CI job and a grep in the lint job
-  both catch it. Same reasoning as the siblings' deliberately low floors.
+The shell rules this library obeys — no `set -euo pipefail` in a sourced file,
+bash 3.2 rather than 4 — are `~/dev/standards/shell.md`. The self-update rules
+it obeys — notify never fails or prints, the timestamp is stamped before the
+lookup, the state schema is shared across all three siblings, version
+comparison stays byte-compatible — are `~/dev/standards/release.md` §
+Self-update. Neither is restated here. What is specific to this repo:
+
+- **`install.sh` is executed, not sourced**, so it *does* set `-euo pipefail`;
+  everything under `lib/` is sourced and must not.
 - **The only hard dependencies are `git` and `jq`.** Both are already required
-  by every consumer. No `curl`, no GitHub API, no token.
+  by every consumer. No `curl`, no GitHub API, no token — which is also what
+  keeps this a zero-third-party-dependency library.
 - **`update` leaves the checkout on a branch, never detached.** This is the bug
   the library exists to stop repeating; `tests/update.bats` pins it twice.
-- **The notify path never fails and never prints an error.** `<tool> update`
-  prints errors. This is what stops a dev checkout printing an update failure
-  on every invocation, and it is a design rule rather than scattered guards.
-- **The last-checked timestamp is written before the lookup, not after.** `gh`
-  stamps only on success, so an offline user retries on every invocation until
-  the window resets. There is a test named for it.
-- **Version comparison stays byte-compatible with the siblings.** If they
-  disagree, a tool and its siblings disagree about which release is newer.
-  `tests/version.bats` asserts the full ordering matrix from semver.org
-  section 11, which all three were written against.
-- **The state schema is shared across all three libraries.** Adding a field is
-  fine; renaming or repurposing one breaks the other two and any dashboard.
+- `tests/version.bats` is where the shared ordering matrix is asserted for the
+  bash implementation.
 
-## Three traps that cost real time, documented so they are not rediscovered
+## Where the three version traps are handled
 
-**A `git describe` suffix is valid semver.** `v1.2.3-4-gabc1234` parses
-perfectly — `4-gabc1234` is a legal pre-release identifier — and sorts below
-`v1.2.3` exactly as the specification says. So a version *string* cannot answer
-"am I on a release", and rejecting one by shape does not work.
+`release.md` § Versioning derives why each of these is a trap. What this
+library does about them:
 
-`bashselfupdate_current_version` asks git instead. That is the same move
-pyselfupdate makes by reading uv's receipt: ask the tool that recorded the fact
-rather than inferring it from a string. The Go sibling has the identical trap
-with build pseudo-versions.
-
-**One commit can carry several tags, and `describe --exact-match` returns an
-arbitrary one.** This was the first implementation, and the end-to-end install
-test caught it: a checkout pinned to `v0.2.0` on a commit also tagged `v0.1.0`
-reported `v0.1.0`, so every run announced that `v0.2.0` was available — forever,
-because updating could never change the answer.
-
-`git tag --points-at HEAD` lists all of them, and taking the highest by this
-library's own comparator is the only result that matches what was installed.
-Worth remembering that the *unit* tests were green through this; only running
-the real installer surfaced it.
-
-**`sort -V` is not semver.** GNU version sort orders `1.0.0-rc.1` *above*
-`1.0.0`, so using it would offer a release candidate as the newest stable
-release. BSD `sort` on macOS has no `-V` at all. Hence `lib/version.sh`.
+- **`bashselfupdate_current_version` asks git, never a version string** — a
+  `git describe` suffix is valid semver, so no string test can answer "am I on
+  a release". Same move pyselfupdate makes by reading uv's receipt.
+- **It uses `git tag --points-at HEAD`, not `describe --exact-match`**, and
+  takes the highest by this library's own comparator. The unit tests were green
+  through this bug; only the end-to-end install test caught it.
+- **`lib/version.sh` exists because `sort -V` is not semver** — and because BSD
+  `sort` on macOS has no `-V` at all.
 
 ## Testing
 

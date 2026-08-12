@@ -14,6 +14,8 @@ setup() {
   source "$BATS_TEST_DIRNAME/../lib/source.sh"
   source "$BATS_TEST_DIRNAME/../lib/update.sh"
 
+  clear_git_environment
+
   ORIGIN=$(make_repo "$BATS_TEST_TMPDIR/origin" v1.0.0 v1.1.0)
   CHECKOUT=$(make_checkout "$ORIGIN" "$BATS_TEST_TMPDIR/checkout" v1.0.0)
 }

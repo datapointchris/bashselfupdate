@@ -16,6 +16,7 @@ setup() {
   source "$BATS_TEST_DIRNAME/../lib/update.sh"
   source "$BATS_TEST_DIRNAME/../lib/notify.sh"
 
+  clear_git_environment
   clear_gate_environment
   export XDG_STATE_HOME="$BATS_TEST_TMPDIR/state"
 

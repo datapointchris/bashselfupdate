@@ -92,3 +92,15 @@ clear_gate_environment() {
   unset NO_AUTO_UPDATE AUTO_UPDATE_INTERVAL CI BUILD_NUMBER RUN_ID \
     GITHUB_ACTIONS CODESPACES DEMO_NO_AUTO_UPDATE DEMO_AUTO_UPDATE_INTERVAL
 }
+
+# The same inherited git environment make_repo guards against, cleared for the
+# test itself rather than for one helper. make_repo and make_checkout unset it
+# inside their own subshells, which leaves every `git -C "$CHECKOUT" ...` in a
+# test body still reading pre-commit's staged index: git compares the throwaway
+# checkout against a tree from another repository, decides VERSION is modified,
+# and refuses to switch branches. Standalone runs pass and the commit hook
+# fails, which is the same only-under-the-hook symptom documented above.
+clear_git_environment() {
+  unset GIT_INDEX_FILE GIT_DIR GIT_WORK_TREE GIT_OBJECT_DIRECTORY \
+    GIT_ALTERNATE_OBJECT_DIRECTORIES
+}

@@ -12,7 +12,7 @@ The three deliberately share conventions and version precedence. All three now
 have a notify layer — goselfupdate's is `autoupdate/autoupdate.go`. The
 state-file schema and the environment-variable contract are shared across all
 three, so a rename in one breaks the other two; see
-`~/dev/standards/release.md` § Self-update. They do **not** share an API,
+`standards/release.md` § Self-update. They do **not** share an API,
 because "update" means three different operations.
 
 ## Layout
@@ -30,10 +30,10 @@ because "update" means three different operations.
 ## Constraints that must not regress
 
 The shell rules this library obeys — no `set -euo pipefail` in a sourced file,
-bash 3.2 rather than 4 — are `~/dev/standards/shell.md`. The self-update rules
+bash 3.2 rather than 4 — are `standards/shell.md`. The self-update rules
 it obeys — notify never fails or prints, the timestamp is stamped before the
 lookup, the state schema is shared across all three siblings, version
-comparison stays byte-compatible — are `~/dev/standards/release.md` §
+comparison stays byte-compatible — are `standards/release.md` §
 Self-update. Neither is restated here. What is specific to this repo:
 
 - **`install.sh` is executed, not sourced**, so it *does* set `-euo pipefail`;

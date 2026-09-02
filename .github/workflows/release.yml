@@ -18,8 +18,10 @@ jobs:
       # A bash library ships as a git tag and nothing else -- there is no
       # artifact to build, and the tag is what install.sh and
       # bashselfupdate_latest_tag resolve.
+      #
+      # No changelog-file: the release body is the changelog, and
+      # bashselfupdate_changelog reads `git log` between two tags rather than a
+      # tracked file.
       - uses: go-semantic-release/action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          changelog-file: CHANGELOG.md
-          prepend: true

@@ -23,7 +23,7 @@ because "update" means three different operations.
 | `lib/version.sh` | Semantic version comparison, replacing `sort -V` |
 | `lib/source.sh` | Reading tags from a remote |
 | `lib/update.sh` | `check`, `update`, `changelog` |
-| `lib/state.sh` | The shared `autoupdate.json` schema |
+| `lib/state.sh` | The shared `autoupdate-<machine>.json` schema, and the machine derivation that names it |
 | `lib/notify.sh` | The gate, the interval, the notice |
 | `install.sh` | Clone-and-pin. The only executable file |
 
@@ -43,6 +43,11 @@ Self-update. Neither is restated here. What is specific to this repo:
   keeps this a zero-third-party-dependency library.
 - **`update` leaves the checkout on a branch, never detached.** This is the bug
   the library exists to stop repeating; `tests/update.bats` pins it twice.
+- **The machine in the state filename is derived identically in all three
+  siblings** — bare hostname, domain dropped, lowercased, `unknown` when it
+  cannot be read. A library deriving it differently puts one box's state under
+  two names, and neither box then sees the other's. `tests/state.bats` asserts
+  the same cases goselfupdate and pyselfupdate assert.
 - `tests/version.bats` is where the shared ordering matrix is asserted for the
   bash implementation.
 

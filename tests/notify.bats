@@ -22,7 +22,7 @@ setup() {
 
   ORIGIN=$(make_repo "$BATS_TEST_TMPDIR/origin" v1.0.0 v1.1.0)
   CHECKOUT=$(make_checkout "$ORIGIN" "$BATS_TEST_TMPDIR/checkout" v1.0.0)
-  STATE="$XDG_STATE_HOME/demo/autoupdate.json"
+  STATE="$XDG_STATE_HOME/demo/$(bashselfupdate_state_filename "$(bashselfupdate_machine)")"
 }
 
 # The gate requires both streams to be terminals, which neither a test runner nor

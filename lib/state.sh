@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# The per-tool state file.
+# The per-tool, per-machine state file.
 #
 # One schema, shared byte-for-byte with goselfupdate and pyselfupdate, so any
 # tool can read any other tool's state and one dashboard can glob
-# ~/.local/state/*/autoupdate.json with no per-tool knowledge.
+# ~/.local/state/*/autoupdate-*.json with no per-tool knowledge.
 #
 # State, not config and not cache: it persists across runs, it is not authored
 # by the user, and deleting it changes behaviour rather than merely costing a
@@ -12,9 +12,56 @@
 
 BASHSELFUPDATE_SCHEMA=1
 
+# Names the file when the host cannot be read, so a filename is always
+# well-formed and two unidentifiable boxes collide only with each other.
+BASHSELFUPDATE_UNKNOWN_MACHINE=unknown
+
+# A hostname from any source, reduced to the form this library records: bare,
+# no domain, lowercased.
+#
+# goselfupdate and pyselfupdate reduce it identically. A library that reduced it
+# differently would put one box's state under two names, and neither box would
+# then see the other's.
+bashselfupdate_canonical_machine() {
+  local name="$1"
+
+  # Leading then trailing whitespace, in the form bash 3.2 has: the inner
+  # expansion yields the run to remove, the outer removes exactly that run.
+  name="${name#"${name%%[![:space:]]*}"}"
+  name="${name%"${name##*[![:space:]]}"}"
+
+  # tr rather than ${name,,}, which is bash 4.
+  name=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
+  name="${name%%.*}"
+
+  echo "${name:-$BASHSELFUPDATE_UNKNOWN_MACHINE}"
+}
+
+# The box this process runs on.
+#
+# uname -n rather than hostname: it is POSIX, and it is on macOS and Linux alike
+# without adding a dependency to a library whose whole dependency list is git
+# and jq.
+bashselfupdate_machine() {
+  bashselfupdate_canonical_machine "$(uname -n 2>/dev/null)"
+}
+
+# The file one machine writes inside a tool's state directory.
+#
+# The machine is part of the name because a state directory is a synced
+# directory on some installations, and a file syncer has no merge: two boxes
+# writing one path leaves one winner plus a conflict copy nobody reads. Both
+# fields this file carries -- the version installed here and the instant this
+# box last checked -- describe one machine, so the split costs nothing and makes
+# the collision unreachable.
+bashselfupdate_state_filename() {
+  echo "autoupdate-${1}.json"
+}
+
 bashselfupdate_state_path() {
-  local tool="$1"
-  echo "${XDG_STATE_HOME:-$HOME/.local/state}/${tool}/autoupdate.json"
+  local tool="$1" filename
+  filename=$(bashselfupdate_state_filename "$(bashselfupdate_machine)")
+  echo "${XDG_STATE_HOME:-$HOME/.local/state}/${tool}/${filename}"
 }
 
 # Echoes one field, or an empty string when the file is absent or unreadable.
@@ -44,9 +91,10 @@ bashselfupdate_state_read() {
 # Usage: bashselfupdate_state_write <tool> <current> <latest> <error>
 bashselfupdate_state_write() {
   local tool="$1" current="${2:-}" latest="${3:-}" error="${4:-}"
-  local path directory now epoch
+  local path directory filename now epoch
   path=$(bashselfupdate_state_path "$tool")
   directory=$(dirname "$path")
+  filename=$(basename "$path")
 
   mkdir -p "$directory" 2>/dev/null || return 0
 
@@ -56,7 +104,7 @@ bashselfupdate_state_write() {
   # back.
   now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-  local temporary="${directory}/.autoupdate.json.tmp.$$"
+  local temporary="${directory}/.${filename}.tmp.$$"
   if jq -n \
     --argjson schema "$BASHSELFUPDATE_SCHEMA" \
     --arg tool "$tool" \

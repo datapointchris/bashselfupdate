@@ -157,7 +157,8 @@ at all. Pre-releases are skipped entirely unless
 
 ## State
 
-`${XDG_STATE_HOME:-~/.local/state}/<tool>/autoupdate.json`, written atomically:
+`${XDG_STATE_HOME:-~/.local/state}/<tool>/autoupdate-<machine>.json`, written
+atomically:
 
 ```json
 {
@@ -170,6 +171,13 @@ at all. Pre-releases are skipped entirely unless
   "last_error": ""
 }
 ```
+
+`<machine>` is the bare lowercased hostname, from `bashselfupdate_machine`. It
+is in the name because both fields that vary — the version installed here, and
+the instant this box last checked — describe one machine. A state directory
+shared between machines, by a file syncer or a network home directory,
+otherwise has two writers on one path and reports whichever wrote last as the
+state of all of them.
 
 `checked_at_epoch` is redundant on purpose: BSD `date` cannot parse the
 ISO-8601 field without `-j -f` gymnastics, and that integer is what makes the
@@ -185,8 +193,8 @@ exists to bound the request rate, and only this ordering actually does that.
 ## Siblings
 
 The same two-layer design in other languages. All three now ship both halves,
-and share the `autoupdate.json` schema, the `NO_AUTO_UPDATE` contract and the
-version precedence rules.
+and share the `autoupdate-<machine>.json` schema, the machine derivation that
+names it, the `NO_AUTO_UPDATE` contract and the version precedence rules.
 
 - [goselfupdate](https://github.com/datapointchris/goselfupdate) — replaces a Go binary
 - [pyselfupdate](https://github.com/datapointchris/pyselfupdate) — reinstalls a `uv tool`

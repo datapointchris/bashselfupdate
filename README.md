@@ -202,6 +202,6 @@ names it, the `NO_AUTO_UPDATE` contract and the version precedence rules.
 Version precedence is deliberately identical across all three, so a tool and
 its siblings never disagree about which release is newer.
 
-## Licence
+## License
 
 MIT

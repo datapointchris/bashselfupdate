@@ -104,6 +104,6 @@ then `bashselfupdate_checkout_latest`, and each `bin/` entry point sources
 `load.bash` and calls `bashselfupdate_notify`, `_update`, `_current_version`,
 `_describe` and `_changelog`. Neither keeps a copy of the update logic any more.
 
-The checkout-onto-a-branch behaviour is the part that had to land with the
+The checkout-onto-a-branch behavior is the part that had to land with the
 migration rather than after it — without it a re-run of the installer leaves a
 detached HEAD and fails.

@@ -249,7 +249,7 @@ notify_interactively() {
   assert_output "1800"
 }
 
-@test "the environment prefix uppercases and normalises the tool name" {
+@test "the environment prefix uppercases and normalizes the tool name" {
   assert_equal "$(_bashselfupdate_env_prefix my-tool)" "MY_TOOL"
   assert_equal "$(_bashselfupdate_env_prefix demo)" "DEMO"
 }

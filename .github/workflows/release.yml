@@ -4,31 +4,27 @@ on:
   push:
     branches: [main]
 
+# Scoped per job rather than here: validate only reads, and it is the job that
+# runs the most third-party code.
 permissions:
-  contents: write
+  contents: read
 
-# Two pushes to main inside one run's window would otherwise race, and the later
-# run fails pushing its version bump onto a ref that has already moved.
-# Never cancel-in-progress: a canceled release can leave a tag with no release.
+# Two pushes to main inside one run's window would otherwise race to cut the
+# same version. Never cancel-in-progress: a canceled release can leave a tag
+# with no release.
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
+  # Without this, release publishes whatever is on main, linted or not.
+  validate:
+    uses: ./.github/workflows/validate.yml
 
-      # A bash library ships as a git tag and nothing else -- there is no
-      # artifact to build, and the tag is what install.sh and
-      # bashselfupdate_latest_tag resolve.
-      #
-      # No changelog-file: the release body is the changelog, and
-      # bashselfupdate_changelog reads `git log` between two tags rather than a
-      # tracked file.
-      - uses: go-semantic-release/action@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+  # go-semantic-release reads no language, so a bash library that ships only a
+  # tag calls it. install.sh and bashselfupdate_latest_tag resolve that tag.
+  release:
+    needs: validate
+    uses: datapointchris/reusable-workflows/.github/workflows/go-semantic-release.yml@v1
+    permissions:
+      contents: write

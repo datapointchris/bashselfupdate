@@ -4,8 +4,8 @@
 # Tags are read with `git ls-remote`, not the GitHub API. That is the one place
 # the bash implementation is genuinely simpler than its siblings rather than
 # merely different: no token, no rate limit, no JSON, and it works against any
-# git remote rather than only GitHub. goselfupdate and pyselfupdate need the API
-# because they have to find a release *asset*; a bash tool's release is the tag.
+# git remote rather than only GitHub. goselfupdate needs the API because it has
+# to find a release *asset*, the binary. A bash tool's release is the tag itself.
 
 # Echoes the tag a checkout is sitting exactly on, or returns non-zero.
 #

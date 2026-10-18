@@ -87,7 +87,7 @@ bashselfupdate_checkout_latest() {
   echo "$latest"
 }
 
-# Commit subjects between two tags, one per line, newest last.
+# Commit subjects between two tags, one per line, newest first.
 #
 # Read from the local checkout, which already has both tags after the fetch
 # `bashselfupdate_update` performs. Silent on failure: a missing changelog must

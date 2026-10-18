@@ -95,8 +95,7 @@ repositories cloned over the filesystem, which exercises the same `ls-remote`,
 changes directory but does not override `GIT_INDEX_FILE`, and pre-commit
 exports one — so `git add` in a throwaway repository builds a tree from *that*
 index and dies on blobs it has never seen. The symptom is a corrupt-object
-error naming an unrelated file, and it appears only under the commit hook. This
-exact bug was found and fixed in dotfiles the same week.
+error naming an unrelated file, and it appears only under the commit hook.
 
 **Terminal detection is overridden, never faked.** `script` needs a controlling
 terminal to allocate a pty, and neither a test runner nor a CI step has one, so
@@ -110,7 +109,8 @@ the only observable proof the remote was never consulted.
 ## Releasing
 
 Push a conventional commit to main; `go-semantic-release` tags it and writes the
-changelog. No binaries are built — a bash library ships as a git tag, and the
+GitHub release body from the commit subjects. Nothing commits a changelog file
+back. No binaries are built — a bash library ships as a git tag, and the
 tag is what `install.sh` and `bashselfupdate_latest_tag` resolve.
 
 A tag can be moved, unlike a Go module version or a PyPI release, so this is the

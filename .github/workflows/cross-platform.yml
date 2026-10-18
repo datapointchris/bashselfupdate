@@ -78,8 +78,9 @@ jobs:
           BASHSELFUPDATE_INSTALL_DIR=/tmp/bsu-install \
             bash install.sh
 
-          # The bug this library exists to prevent: a detached HEAD has no
-          # upstream, so re-running the installer must still work.
+          # A second run has to move a checkout the first run already moved.
+          # The installer fetches and runs `checkout -B`, never `git pull`, and
+          # leaves HEAD attached to the release branch.
           test "$(git -C /tmp/bsu-install symbolic-ref --short HEAD)" = "release"
           BASHSELFUPDATE_REPO_URL="$PWD" \
           BASHSELFUPDATE_INSTALL_DIR=/tmp/bsu-install \

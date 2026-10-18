@@ -133,22 +133,14 @@ setup() {
 }
 
 @test "update leaves the checkout on a branch, never detached" {
-  # The bug this library exists to stop repeating: `git checkout <tag>` detaches
-  # HEAD, and a detached checkout has no upstream, so any installer that later
-  # runs `git pull` fails with "You are not currently on a branch".
+  # `checkout -B release` keeps HEAD attached where a plain `git checkout <tag>`
+  # would detach it. This is not what lets a checkout be pulled: neither state
+  # has an upstream, and nothing here pulls.
   bashselfupdate_update "$CHECKOUT"
 
   run git -C "$CHECKOUT" symbolic-ref --short HEAD
   assert_success
   assert_output "release"
-}
-
-@test "a checkout stays pullable after an update" {
-  bashselfupdate_update "$CHECKOUT"
-
-  run git -C "$CHECKOUT" rev-parse --abbrev-ref --symbolic-full-name HEAD
-  assert_success
-  refute_output "HEAD"
 }
 
 @test "update is a no-op when already current" {

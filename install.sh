@@ -47,11 +47,12 @@ fi
 source "$INSTALL_DIR/lib/version.sh"
 source "$INSTALL_DIR/lib/source.sh"
 
-# Checked out onto a branch, never a detached HEAD. A detached checkout has no
-# upstream, so re-running this installer -- or any `git pull` against it --
-# fails afterwards with "You are not currently on a branch". That bug shipped in
-# two tools before this library existed, and pinning it here is most of the
-# reason the library exists.
+# Moved with fetch and `checkout -B`, never `git pull`. Neither a detached HEAD
+# nor the `release` branch has an upstream, so a pull fails on both, and an
+# installer that pulls breaks on any checkout already moved. `checkout -B` works
+# from any state, which is what makes re-running this script safe. `-B release`
+# keeps HEAD attached where a plain `git checkout <tag>` would detach it.
+#
 # Spelled out here rather than calling bashselfupdate_checkout_latest, which is
 # the function every *consumer's* installer should use. This script is the
 # bootstrap: it sources from $INSTALL_DIR, which still holds the version being

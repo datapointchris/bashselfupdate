@@ -41,8 +41,12 @@ Self-update. Neither is restated here. What is specific to this repo:
 - **The only hard dependencies are `git` and `jq`.** Both are already required
   by every consumer. No `curl`, no GitHub API, no token — which is also what
   keeps this a zero-third-party-dependency library.
-- **`update` leaves the checkout on a branch, never detached.** This is the bug
-  the library exists to stop repeating; `tests/update.bats` pins it twice.
+- **Nothing here pulls.** `update`, `checkout_latest` and `install.sh` move a
+  checkout with `fetch` and then `checkout -B release <tag>`, which works from
+  any state. Neither a detached HEAD nor the `release` branch has an upstream,
+  so `git pull` fails on both. A consumer's installer calls `checkout_latest`
+  for that reason. `-B release` keeps HEAD attached, and `tests/update.bats`
+  pins that once for `update` and once for `checkout_latest`.
 - **The machine in the state filename is derived identically in all three
   siblings** — bare hostname, domain dropped, lowercased, `unknown` when it
   cannot be read. A library deriving it differently puts one box's state under
@@ -99,11 +103,11 @@ one sibling where a bad release is recoverable. Do not rely on that.
 
 ## Consumers
 
-`font` and `theme`. Both migrated: each `install.sh` calls `install_bashselfupdate`
-then `bashselfupdate_checkout_latest`, and each `bin/` entry point sources
+`font` and `theme`. Each `install.sh` calls `install_bashselfupdate` then
+`bashselfupdate_checkout_latest`, and each `bin/` entry point sources
 `load.bash` and calls `bashselfupdate_notify`, `_update`, `_current_version`,
-`_describe` and `_changelog`. Neither keeps a copy of the update logic any more.
+`_describe` and `_changelog`. Neither keeps a copy of the update logic.
 
-The checkout-onto-a-branch behavior is the part that had to land with the
-migration rather than after it — without it a re-run of the installer leaves a
-detached HEAD and fails.
+A consumer's installer moves its checkout with `checkout_latest`, never
+`git pull`. Once `update` has moved a checkout, it has no upstream, so a pull
+fails on every re-run of the installer.

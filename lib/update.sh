@@ -29,11 +29,12 @@ bashselfupdate_check() {
 #
 # Echoes "<from> <to>" when it moved, nothing when already current.
 #
-# Checks out onto a branch rather than a detached HEAD. A plain `git checkout
-# <tag>` detaches, and a detached checkout has no upstream -- so any installer
-# that re-runs `git pull` to update fails afterwards with "You are not currently
-# on a branch". That bug shipped in font and theme and is the reason this
-# function exists rather than each tool spelling it out.
+# Moves with fetch and `checkout -B`, never `git pull`, so it works from any
+# state the checkout is in. `-B release` keeps HEAD attached to a branch, where a
+# plain `git checkout <tag>` would detach it. Neither state has an upstream, so
+# `git pull` fails on both: "You are not currently on a branch" when detached,
+# "There is no tracking information for the current branch" on `release`. That
+# is why an installer calls bashselfupdate_checkout_latest rather than pulling.
 bashselfupdate_update() {
   local directory="$1"
   local remote="${2:-origin}"

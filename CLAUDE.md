@@ -1,19 +1,18 @@
 # bashselfupdate — Claude Code instructions
 
 A public bash library, not a CLI. Nothing here is executed directly except
-`install.sh`; the rest is sourced by the bash tools in `~/tools/`.
+`install.sh`; the rest is sourced by the bash tools listed under Consumers.
 
 Unlike most repos here, this one is written to be used by strangers. Treat the
 function names, the README and the header comments as the product — a change
 that is merely convenient for font and theme is not automatically right.
 
-It is the bash sibling of `~/tools/goselfupdate` and `~/tools/pyselfupdate`.
-The three deliberately share conventions and version precedence. All three now
-have a notify layer — goselfupdate's is `autoupdate/autoupdate.go`. The
-state-file schema and the environment-variable contract are shared across all
-three, so a rename in one breaks the other two; see
-`standards/release.md` § Self-update. They do **not** share an API,
-because "update" means three different operations.
+It is the bash sibling of goselfupdate and pyselfupdate. The three
+deliberately share conventions and version precedence. All three have a notify
+layer — goselfupdate's is `autoupdate/autoupdate.go`. The state-file schema and
+the environment-variable contract are shared across all three, so a rename in
+one breaks the other two. They do **not** share an API, because "update" means
+three different operations.
 
 ## Layout
 
@@ -29,12 +28,27 @@ because "update" means three different operations.
 
 ## Constraints that must not regress
 
-The shell rules this library obeys — no `set -euo pipefail` in a sourced file,
-bash 3.2 rather than 4 — are `standards/shell.md`. The self-update rules
-it obeys — notify never fails or prints, the timestamp is stamped before the
-lookup, the state schema is shared across all three siblings, version
-comparison stays byte-compatible — are `standards/release.md` §
-Self-update. Neither is restated here. What is specific to this repo:
+The shell rules this library obeys:
+
+- **No `set -euo pipefail` in a sourced file.** It would change the error
+  handling of the program that sourced it.
+- **Bash 3.2, never a bash 4 construct.** macOS ships 3.2, so a bash 4
+  expansion is a "bad substitution" on every invocation on a stock Mac. The
+  cross-platform workflow greps for the forbidden forms.
+
+The self-update rules it obeys, shared with both siblings:
+
+- **Notify never fails and never prints an error.** An update notice must not
+  break the command the user typed. `<tool> update` is where errors surface.
+- **The timestamp is stamped before the lookup.** Stamping only on success lets
+  an offline user retry on every invocation, and the interval exists to bound
+  the request rate.
+- **The state schema is shared byte-for-byte across all three siblings**, so
+  one reader can glob every tool's state with no per-tool knowledge.
+- **Version comparison stays byte-compatible with the siblings**, so the three
+  never disagree about which release is newer.
+
+What is specific to this repo:
 
 - **`install.sh` is executed, not sourced**, so it *does* set `-euo pipefail`;
   everything under `lib/` is sourced and must not.
@@ -57,14 +71,15 @@ Self-update. Neither is restated here. What is specific to this repo:
 
 ## Where the three version traps are handled
 
-`release.md` § Versioning derives why each of these is a trap. What this
-library does about them:
+Three ways a version check goes wrong without failing, and what this library
+does about each:
 
 - **`bashselfupdate_current_version` asks git, never a version string** — a
   `git describe` suffix is valid semver, so no string test can answer "am I on
   a release". Same move pyselfupdate makes by reading uv's receipt.
 - **It uses `git tag --points-at HEAD`, not `describe --exact-match`**, and
-  takes the highest by this library's own comparator. The unit tests were green
+  takes the highest by this library's own comparator. One commit can carry
+  several tags, and `describe` returns an arbitrary one. The unit tests were green
   through this bug; only the end-to-end install test caught it.
 - **`lib/version.sh` exists because `sort -V` is not semver** — and because BSD
   `sort` on macOS has no `-V` at all.

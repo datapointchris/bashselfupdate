@@ -102,7 +102,7 @@ notify_interactively() {
   assert_output --partial "could not read tags"
 }
 
-@test "the fleet kill switch is presence-only" {
+@test "the every-tool kill switch is presence-only" {
   # Any value, including 0 and the empty string, the way NO_COLOR works.
   for value in "" 0 false 1; do
     rm -f "$STATE"
@@ -244,7 +244,7 @@ notify_interactively() {
   assert_output "86400"
 }
 
-@test "a per-tool interval outranks the fleet interval" {
+@test "a per-tool interval outranks the every-tool interval" {
   AUTO_UPDATE_INTERVAL=99d DEMO_AUTO_UPDATE_INTERVAL=30m run _bashselfupdate_interval demo
   assert_output "1800"
 }

@@ -152,8 +152,8 @@ _bashselfupdate_env_prefix() {
   printf '%s' "$tool" | tr '[:lower:]' '[:upper:]'
 }
 
-# Seconds between checks. A per-tool variable outranks the fleet one, and both
-# accept 30s, 45m, 12h, 7d or a bare number of seconds.
+# Seconds between checks. A per-tool variable outranks the every-tool one, and
+# both accept 30s, 45m, 12h, 7d or a bare number of seconds.
 _bashselfupdate_interval() {
   local tool="$1"
   local prefix raw parsed

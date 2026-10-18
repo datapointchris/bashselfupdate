@@ -4,8 +4,8 @@
 #   source "${XDG_LIB_HOME:-$HOME/.local/lib}/bashselfupdate/load.bash"
 #
 # Named load.bash because that is the convention bats-support and bats-assert
-# established for a sourced bash library, and the one this machine's other
-# installed libraries already follow.
+# established for a sourced bash library, so a consumer's source line looks like
+# every other bash library it loads.
 #
 # Deliberately no `set -euo pipefail`: this file is sourced into the caller's
 # shell, and setting shell options there would silently change the error

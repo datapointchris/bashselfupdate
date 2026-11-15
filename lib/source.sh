@@ -22,10 +22,11 @@
 # ask the tool that recorded the fact.
 #
 # `--points-at`, not `describe --exact-match`, because one commit can carry
-# several tags and describe returns an arbitrary one of them. A checkout pinned
-# to v0.2.0 on a commit also tagged v0.1.0 reported v0.1.0, so every run
-# announced that v0.2.0 was available -- forever. Taking the highest by this
-# library's own comparator is the only answer that matches what was installed.
+# several tags and describe returns an arbitrary one of them. On a commit
+# tagged both v0.1.0 and v0.2.0, a checkout installed at v0.2.0 that reports
+# v0.1.0 is told on every run that v0.2.0 is available. Taking the highest by
+# this library's own comparator is the only answer that matches what was
+# installed.
 bashselfupdate_current_version() {
   local directory="$1"
 

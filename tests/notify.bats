@@ -145,12 +145,11 @@ notify_interactively() {
   [[ ! -f "$STATE" ]]
 }
 
-# The bug this asserts against: notify used to call bashselfupdate_enabled with
-# `>/dev/null` to throw away the skip reason, and that redirect replaced the very
-# stdout the terminal check reads -- so the gate answered not-a-tty on every
-# invocation and notify could never print anything. Every other test in this file
-# sets BASHSELFUPDATE_INTERACTIVE, which short-circuits the check before it looks
-# at stdout, so the whole suite stayed green through it.
+# A redirect such as `>/dev/null` between notify and its gate replaces the very
+# stdout the terminal check reads, so the gate answers not-a-tty on every
+# invocation and notify never prints. Every other test in this file sets
+# BASHSELFUPDATE_INTERACTIVE, which short-circuits the check before it looks at
+# stdout, so none of them can see that.
 #
 # There is no pty here to assert the real thing, so this asserts the property
 # that made it possible: whatever the gate writes to stdout must reach the

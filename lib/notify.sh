@@ -33,10 +33,10 @@ bashselfupdate_enabled() {
 # Separate from bashselfupdate_enabled because printing and gating cannot share
 # one function. notify has to discard the reason, and the only ways to discard a
 # function's stdout -- `>/dev/null` or `$(...)` -- both replace stdout, which is
-# exactly what the terminal check below reads. notify redirecting the reason
-# away therefore made its own gate answer not-a-tty every time, so notify never
-# printed anything unless BASHSELFUPDATE_INTERACTIVE was set. Every test set it,
-# which is why the suite was green through it.
+# exactly what the terminal check below reads. A gate called behind such a
+# redirect answers not-a-tty every time, and notify would never print. A test
+# that sets BASHSELFUPDATE_INTERACTIVE cannot see that, because the variable
+# decides before stdout is read.
 _bashselfupdate_gate() {
   local tool="$1" directory="$2"
   local prefix

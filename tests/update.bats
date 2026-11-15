@@ -264,8 +264,9 @@ setup() {
 }
 
 @test "current_version picks the highest of several tags on one commit" {
-  # `git describe --exact-match` returns an arbitrary one of them, which made a
-  # checkout pinned to v0.2.0 report v0.1.0 and announce an update forever.
+  # `git describe --exact-match` returns an arbitrary one of them. A checkout on
+  # the higher tag that reports the lower one is told on every run that the
+  # release it already has is available.
   git -C "$CHECKOUT" tag v0.9.0 >/dev/null
   git -C "$CHECKOUT" tag v2.5.0 >/dev/null
 

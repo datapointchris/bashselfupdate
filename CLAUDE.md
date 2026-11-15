@@ -79,8 +79,8 @@ does about each:
   a release". Same move pyselfupdate makes by reading uv's receipt.
 - **It uses `git tag --points-at HEAD`, not `describe --exact-match`**, and
   takes the highest by this library's own comparator. One commit can carry
-  several tags, and `describe` returns an arbitrary one. The unit tests were green
-  through this bug; only the end-to-end install test caught it.
+  several tags, and `describe` returns an arbitrary one. Only a commit carrying
+  two tags shows the difference, so `tests/update.bats` builds one.
 - **`lib/version.sh` exists because `sort -V` is not semver** — and because BSD
   `sort` on macOS has no `-V` at all.
 

@@ -133,9 +133,7 @@ setup() {
 }
 
 @test "update leaves the checkout on a branch, never detached" {
-  # `checkout -B release` keeps HEAD attached where a plain `git checkout <tag>`
-  # would detach it. This is not what lets a checkout be pulled: neither state
-  # has an upstream, and nothing here pulls.
+  # The bashselfupdate_update docstring says why the move uses `checkout -B`.
   bashselfupdate_update "$CHECKOUT"
 
   run git -C "$CHECKOUT" symbolic-ref --short HEAD

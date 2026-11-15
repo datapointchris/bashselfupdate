@@ -38,8 +38,8 @@ else
 fi
 
 # Resolve the tag to install. Without an argument this takes the newest, using
-# the library's own comparator rather than `sort -V` -- which orders a
-# pre-release above its release -- or git's --sort=v:refname.
+# the library's own comparator rather than `sort -V` or git's --sort=v:refname;
+# the header of lib/version.sh says why.
 #
 # Sourced from $INSTALL_DIR, which at this point still holds the version being
 # replaced. That is why this script uses only these two files and spells the
@@ -47,11 +47,9 @@ fi
 source "$INSTALL_DIR/lib/version.sh"
 source "$INSTALL_DIR/lib/source.sh"
 
-# Moved with fetch and `checkout -B`, never `git pull`. Neither a detached HEAD
-# nor the `release` branch has an upstream, so a pull fails on both, and an
-# installer that pulls breaks on any checkout already moved. `checkout -B` works
-# from any state, which is what makes re-running this script safe. `-B release`
-# keeps HEAD attached where a plain `git checkout <tag>` would detach it.
+# Moved with fetch and `checkout -B release`, never `git pull`, which is what
+# makes re-running this script safe. bashselfupdate_update in lib/update.sh
+# says why a pull fails on a moved checkout.
 #
 # Spelled out here rather than calling bashselfupdate_checkout_latest, which is
 # the function every *consumer's* installer should use. This script is the

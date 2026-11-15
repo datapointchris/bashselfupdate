@@ -66,11 +66,10 @@ bashselfupdate_remote_tags() {
 
 # Echoes the newest tag the remote publishes, or nothing.
 #
-# Sorted with this library's own comparator rather than `sort -V` or git's
-# `--sort=-v:refname`. GNU version sort orders 1.0.0-rc.1 *above* 1.0.0, where
-# the specification puts a pre-release below the release it precedes, and BSD
-# sort on macOS has no -V at all. Picking the maximum by comparison is O(n) and
-# keeps all three libraries agreeing on what "newest" means.
+# Sorted with this library's own comparator, never `sort -V` or git's
+# `--sort=-v:refname`; the header of lib/version.sh says why. Picking the
+# maximum by comparison is O(n) and keeps all three libraries agreeing on what
+# "newest" means.
 #
 # Pre-releases are skipped unless BASHSELFUPDATE_ALLOW_PRERELEASE is set. This
 # matches the siblings, where the same default is spelled `AllowPrerelease` and

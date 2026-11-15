@@ -56,11 +56,10 @@ What is specific to this repo:
   by every consumer. No `curl`, no GitHub API, no token — which is also what
   keeps this a zero-third-party-dependency library.
 - **Nothing here pulls.** `update`, `checkout_latest` and `install.sh` move a
-  checkout with `fetch` and then `checkout -B release <tag>`, which works from
-  any state. Neither a detached HEAD nor the `release` branch has an upstream,
-  so `git pull` fails on both. A consumer's installer calls `checkout_latest`
-  for that reason. `-B release` keeps HEAD attached, and `tests/update.bats`
-  pins that once for `update` and once for `checkout_latest`.
+  checkout with `fetch` and then `checkout -B release <tag>`. The
+  `bashselfupdate_update` docstring in `lib/update.sh` says why a pull fails.
+  `tests/update.bats` pins that HEAD stays on `release`, once for `update` and
+  once for `checkout_latest`.
 - **The machine in the state filename is derived identically in all three
   siblings** — bare hostname, domain dropped, lowercased, `unknown` when it
   cannot be read. A library deriving it differently puts one box's state under
@@ -81,8 +80,7 @@ does about each:
   takes the highest by this library's own comparator. One commit can carry
   several tags, and `describe` returns an arbitrary one. Only a commit carrying
   two tags shows the difference, so `tests/update.bats` builds one.
-- **`lib/version.sh` exists because `sort -V` is not semver** — and because BSD
-  `sort` on macOS has no `-V` at all.
+- **`lib/version.sh` replaces `sort -V`**, and its header says why.
 
 ## Testing
 
@@ -124,5 +122,4 @@ one sibling where a bad release is recoverable. Do not rely on that.
 `_describe` and `_changelog`. Neither keeps a copy of the update logic.
 
 A consumer's installer moves its checkout with `checkout_latest`, never
-`git pull`. Once `update` has moved a checkout, it has no upstream, so a pull
-fails on every re-run of the installer.
+`git pull`.

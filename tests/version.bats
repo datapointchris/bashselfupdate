@@ -85,13 +85,12 @@ setup() {
 }
 
 @test "compares numeric pre-release identifiers numerically, not as strings" {
-  # The case `sort -V` and naive string comparison both get wrong.
+  # A string comparison puts beta.11 below beta.2.
   assert_equal "$(bashselfupdate_compare_versions 1.0.0-beta.2 1.0.0-beta.11)" "-1"
 }
 
 @test "ranks a pre-release below its release" {
-  # The case GNU `sort -V` gets backwards, which is why this library does not
-  # use it.
+  # The case the header of lib/version.sh gives for not using `sort -V`.
   assert_equal "$(bashselfupdate_compare_versions 1.0.0-rc.1 1.0.0)" "-1"
 }
 

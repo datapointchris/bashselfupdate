@@ -89,6 +89,7 @@ why it calls `checkout_latest`.
 ```bash
 bashselfupdate_notify mytool "$MYTOOL_APP_DIR"            # gate, throttle, then one line if behind
 bashselfupdate_notify mytool "$MYTOOL_APP_DIR" upstream   # tags from a remote other than origin
+bashselfupdate_notify mytool "$MYTOOL_APP_DIR" origin self-update   # a self-update verb other than update
 ```
 
 The line it prints:
@@ -96,6 +97,10 @@ The line it prints:
 ```text
 mytool v1.4.0 available (running v1.3.2) — run `mytool update`
 ```
+
+The line names `<tool> <verb>`, with `update` as the verb unless you pass
+another. The library cannot see your tool's commands, so the notice is only
+right when that command exists.
 
 It never fails, never updates anything and never prints an error. It always
 returns 0. A failed lookup is recorded in the state file and swallowed. An
@@ -256,7 +261,7 @@ interval exists to bound the request rate, and only this ordering does that.
 
 | Function | Does |
 | --- | --- |
-| `bashselfupdate_notify <tool> <dir> [remote]` | Gate, throttle, one line. Never fails |
+| `bashselfupdate_notify <tool> <dir> [remote] [verb]` | Gate, throttle, one line naming `<tool> <verb>`. Never fails |
 | `bashselfupdate_enabled <tool> <dir>` | Echoes the skip reason, or nothing |
 | `bashselfupdate_check <dir> [remote]` | `<current> <latest>` when behind |
 | `bashselfupdate_update <dir> [remote]` | Moves a released checkout; `<from> <to>` |
@@ -272,7 +277,7 @@ interval exists to bound the request rate, and only this ordering does that.
 | `bashselfupdate_machine` | The machine name the state file carries |
 | `bashselfupdate_version` | This library's own release |
 
-`[remote]` defaults to `origin` everywhere it appears.
+`[remote]` defaults to `origin` everywhere it appears, and `[verb]` to `update`.
 
 ## Siblings — one contract in three languages, never one API
 

@@ -91,9 +91,13 @@ _bashselfupdate_gate() {
 # Never fails: the caller's command must not break because an update notice
 # could not be produced. Always returns 0.
 #
-# Usage: bashselfupdate_notify <tool> <dir> [remote]
+# The line tells the user to run `<tool> <verb>`. This library cannot see the
+# caller's commands, so the caller names its self-update verb, and `update` is
+# the default.
+#
+# Usage: bashselfupdate_notify <tool> <dir> [remote] [verb]
 bashselfupdate_notify() {
-  local tool="$1" directory="$2" remote="${3:-origin}"
+  local tool="$1" directory="$2" remote="${3:-origin}" verb="${4:-update}"
 
   # _bashselfupdate_gate, not bashselfupdate_enabled: the gate has to be
   # evaluated against this caller's stdout, and any way of discarding the
@@ -127,7 +131,7 @@ bashselfupdate_notify() {
     # The backticked command is built here rather than inlined in the format
     # string: single quotes are correct for a printf format, but shellcheck reads
     # the backticks inside them as an unexpanded command substitution (SC2016).
-    local suggestion="\`${tool} update\`"
+    local suggestion="\`${tool} ${verb}\`"
     printf '%s %s available (running %s) — run %s\n' "$tool" "$latest" "$current" "$suggestion" >&2
   fi
   return 0

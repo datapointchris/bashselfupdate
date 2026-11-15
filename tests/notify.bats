@@ -41,6 +41,12 @@ notify_interactively() {
   assert_output --partial "run \`demo update\`"
 }
 
+@test "names the self-update verb the caller passes" {
+  BASHSELFUPDATE_INTERACTIVE=1 run bashselfupdate_notify demo "$CHECKOUT" origin self-update
+  assert_success
+  assert_output --partial "run \`demo self-update\`"
+}
+
 @test "says nothing when already current" {
   git -C "$CHECKOUT" checkout -B release v1.1.0 --quiet
 

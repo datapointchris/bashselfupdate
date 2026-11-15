@@ -48,7 +48,8 @@ setup() {
   # specification says it should.
   #
   # A version string therefore cannot answer "am I on a release", and
-  # bashselfupdate_current_version uses `git describe --exact-match` instead.
+  # bashselfupdate_current_version lists the tags on HEAD with
+  # `git tag --points-at HEAD` instead.
   # The same trap exists in the Go sibling, where a build pseudo-version is also
   # valid semver.
   run bashselfupdate_is_valid_version "v1.2.3-4-gabc1234"

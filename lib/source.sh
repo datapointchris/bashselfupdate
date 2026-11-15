@@ -9,12 +9,12 @@
 
 # Echoes the tag a checkout is sitting exactly on, or returns non-zero.
 #
-# --exact-match, not a bare `git describe`, and this is the whole dev-checkout
-# gate. It is tempting to describe the checkout and reject the result by its
-# shape, but `git describe` on an untagged commit produces `v1.2.3-4-gabc1234`,
-# which is a *perfectly valid* semantic version: `4-gabc1234` is a legal
-# pre-release identifier, so it parses and sorts below v1.2.3. A version string
-# cannot answer "am I on a release".
+# `git tag --points-at HEAD`, never a `git describe` string, and this is the
+# whole dev-checkout gate. It is tempting to describe the checkout and reject
+# the result by its shape, but `git describe` on an untagged commit produces
+# `v1.2.3-4-gabc1234`, which is a *perfectly valid* semantic version:
+# `4-gabc1234` is a legal pre-release identifier, so it parses and sorts below
+# v1.2.3. A version string cannot answer "am I on a release".
 #
 # git can. `--points-at HEAD` lists only tags on the current commit and lists
 # nothing at all otherwise, which is the question actually being asked. This

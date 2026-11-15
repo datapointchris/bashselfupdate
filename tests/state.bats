@@ -16,20 +16,20 @@ setup() {
 }
 
 @test "canonical machine drops the domain and the case" {
-  run bashselfupdate_canonical_machine archlinux
-  assert_output "archlinux"
+  run bashselfupdate_canonical_machine workstation
+  assert_output "workstation"
 
-  run bashselfupdate_canonical_machine Macmini
-  assert_output "macmini"
+  run bashselfupdate_canonical_machine Laptop
+  assert_output "laptop"
 
-  run bashselfupdate_canonical_machine macmini.trusted
-  assert_output "macmini"
+  run bashselfupdate_canonical_machine laptop.home
+  assert_output "laptop"
 
-  run bashselfupdate_canonical_machine MBP.local
-  assert_output "mbp"
+  run bashselfupdate_canonical_machine DESK.local
+  assert_output "desk"
 
-  run bashselfupdate_canonical_machine "  archlinux.lan  "
-  assert_output "archlinux"
+  run bashselfupdate_canonical_machine "  workstation.lan  "
+  assert_output "workstation"
 
   run bashselfupdate_canonical_machine box.example.com
   assert_output "box"
@@ -47,14 +47,14 @@ setup() {
 }
 
 @test "the filename carries the machine" {
-  run bashselfupdate_state_filename archlinux
-  assert_output "autoupdate-archlinux.json"
+  run bashselfupdate_state_filename workstation
+  assert_output "autoupdate-workstation.json"
 }
 
 @test "two machines write two files" {
   local one two
-  one=$(bashselfupdate_state_filename archlinux)
-  two=$(bashselfupdate_state_filename macmini)
+  one=$(bashselfupdate_state_filename workstation)
+  two=$(bashselfupdate_state_filename laptop)
   [ "$one" != "$two" ]
 }
 

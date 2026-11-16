@@ -24,7 +24,7 @@ three different operations.
 | `lib/update.sh` | `check`, `update`, `changelog` |
 | `lib/state.sh` | The shared `autoupdate-<machine>.json` schema, and the machine derivation that names it |
 | `lib/notify.sh` | The gate, the interval, the notice |
-| `install.sh` | Clone-and-pin. The only executable file |
+| `install.sh` | Clone-and-pin. The only file run directly; every other script is sourced |
 
 ## Constraints that must not regress
 

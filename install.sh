@@ -15,7 +15,6 @@ set -euo pipefail
 # against the commit under test rather than against whatever is on main.
 REPO_URL="${BASHSELFUPDATE_REPO_URL:-https://github.com/datapointchris/bashselfupdate.git}"
 INSTALL_DIR="${BASHSELFUPDATE_INSTALL_DIR:-${XDG_LIB_HOME:-$HOME/.local/lib}/bashselfupdate}"
-RELEASE_BRANCH="release"
 REQUESTED_TAG="${1:-}"
 
 info() { echo "[info] $*"; }
@@ -42,10 +41,13 @@ fi
 # the header of lib/version.sh says why.
 #
 # Sourced from $INSTALL_DIR, which at this point still holds the version being
-# replaced. That is why this script uses only these two files and spells the
-# checkout out below: see the note there.
+# replaced. That is why this script uses only two functions and one constant
+# from these files and spells the checkout out below: see the note there.
+# lib/update.sh is sourced for BASHSELFUPDATE_RELEASE_BRANCH, so the branch a
+# checkout sits on is named in one place.
 source "$INSTALL_DIR/lib/version.sh"
 source "$INSTALL_DIR/lib/source.sh"
+source "$INSTALL_DIR/lib/update.sh"
 
 # Moved with fetch and `checkout -B release`, never `git pull`, which is what
 # makes re-running this script safe. bashselfupdate_update in lib/update.sh
@@ -57,7 +59,8 @@ source "$INSTALL_DIR/lib/source.sh"
 # replaced, so depending on a function to install the version that defines it
 # fails on exactly the update that introduces it. A bootstrap cannot call
 # forward into what it is bootstrapping. The two version.sh/source.sh functions
-# above are the minimum it needs and have been stable since v1.0.0.
+# and update.sh's branch constant are the minimum it needs, and all three have
+# been stable since v1.0.0.
 if [[ -n "$REQUESTED_TAG" ]]; then
   TAG="$REQUESTED_TAG"
 else
@@ -67,7 +70,7 @@ else
   fi
 fi
 
-if ! git -C "$INSTALL_DIR" checkout -B "$RELEASE_BRANCH" "$TAG" --quiet; then
+if ! git -C "$INSTALL_DIR" checkout -B "$BASHSELFUPDATE_RELEASE_BRANCH" "$TAG" --quiet; then
   error "could not check out $TAG"
   exit 1
 fi
